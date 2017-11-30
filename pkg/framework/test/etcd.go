@@ -47,7 +47,7 @@ func (e *Etcd) Start() error {
 		dataDir,
 	}
 
-	detectedStart := e.stdErr.Detect("serving insecure client requests on 127.0.0.1:2379")
+	detectedStart := e.stdErr.Detect(fmt.Sprintf("serving insecure client requests on "))
 	timedOut := time.After(20 * time.Second)
 
 	command := exec.Command(e.Path, args...)

@@ -33,6 +33,46 @@ var _ = Describe("Integration", func() {
 		Expect(isAPIServerListening()).To(BeFalse(), "Expected APIServer not to listen anymore")
 	})
 
+	It("Can start etcd on a non-default port", func() {
+		etcd1 := test.Etcd{
+			EtcdURL: "http://localhost:2381",
+			Path:    defaultPathToEtcd,
+		}
+
+		By("starting an etcd processes")
+		Expect(etcd1.Start()).To(Succeed())
+
+		By("checking that the etcd processes is listening")
+		Expect(isSomethingListeningOnPort(2381)()).To(BeTrue(), "Expected etcd to be listening on port 2381")
+
+		By("stoppping the etcd processes")
+		etcd1.Stop()
+
+	})
+
+	It("Can run multiple instances of etcd in parallel", func() {
+		etcd1 := test.Etcd{
+			EtcdURL: "http://localhost:2381",
+			Path:    defaultPathToEtcd,
+		}
+		etcd2 := test.Etcd{
+			EtcdURL: "http://localhost:2382",
+			Path:    defaultPathToEtcd,
+		}
+
+		By("starting multiple etcd processes")
+		Expect(etcd1.Start()).To(Succeed())
+		Expect(etcd2.Start()).To(Succeed())
+
+		By("checking that all started etcd processes are listening")
+		Expect(isSomethingListeningOnPort(2381)()).To(BeTrue(), "Expected etcd to be listening on port 2381")
+		Expect(isSomethingListeningOnPort(2382)()).To(BeTrue(), "Expected etcd to be listening on port 2382")
+
+		By("stoppping all started etcd processes")
+		etcd1.Stop()
+		etcd2.Stop()
+	})
+
 	Measure("It should be fast to bring up and tear down the fixtures", func(b Benchmarker) {
 		b.Time("lifecycle", func() {
 			fixtures := test.NewFixtures(defaultPathToEtcd, defaultPathToApiserver)
